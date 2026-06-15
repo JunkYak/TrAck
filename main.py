@@ -1,0 +1,27 @@
+"""
+main.py – project-root entry point.
+
+Runs the Uvicorn ASGI server.  Production deployments should use a process
+manager (e.g. Gunicorn + UvicornWorker) rather than this script.
+
+Usage:
+    python main.py
+    uvicorn app.main:app --reload
+"""
+
+from __future__ import annotations
+
+import uvicorn
+
+from app.core.config import get_settings
+
+settings = get_settings()
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "app.main:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.is_development,
+        log_level="debug" if settings.APP_DEBUG else "info",
+    )
