@@ -31,6 +31,10 @@ __all__ = [
     "get_measurement_session_service",
     "get_exercise_service",
     "get_exercise_log_service",
+    "get_food_item_service",
+    "get_recipe_service",
+    "get_meal_template_service",
+    "get_daily_nutrition_log_service",
 ]
 
 _bearer = HTTPBearer(auto_error=False)
@@ -178,3 +182,111 @@ def get_exercise_log_service(
     from app.services.exercise_log import ExerciseLogService
 
     return ExerciseLogService(repo, exercise_service)
+
+
+# ---------------------------------------------------------------------------
+# FoodItem
+# ---------------------------------------------------------------------------
+def get_food_item_repository(
+    session: AsyncSession = Depends(get_session),
+):
+    """Provide a :class:`FoodItemRepository` bound to the request session."""
+    from app.repositories.food_item import FoodItemRepository
+
+    return FoodItemRepository(session)
+
+
+def get_food_item_service(
+    repo=Depends(get_food_item_repository),
+):
+    """Provide a :class:`FoodItemService` with its repository injected."""
+    from app.services.food_item import FoodItemService
+
+    return FoodItemService(repo)
+
+
+# ---------------------------------------------------------------------------
+# Recipe
+# ---------------------------------------------------------------------------
+def get_recipe_repository(
+    session: AsyncSession = Depends(get_session),
+):
+    """Provide a :class:`RecipeRepository` bound to the request session."""
+    from app.repositories.recipe import RecipeRepository
+
+    return RecipeRepository(session)
+
+
+def get_recipe_service(
+    repo=Depends(get_recipe_repository),
+    food_repo=Depends(get_food_item_repository),
+):
+    """Provide a :class:`RecipeService` with its repositories injected."""
+    from app.services.recipe import RecipeService
+
+    return RecipeService(repo, food_repo)
+
+
+# ---------------------------------------------------------------------------
+# MealTemplate
+# ---------------------------------------------------------------------------
+def get_meal_template_repository(
+    session: AsyncSession = Depends(get_session),
+):
+    """Provide a :class:`MealTemplateRepository` bound to the request session."""
+    from app.repositories.meal_template import MealTemplateRepository
+
+    return MealTemplateRepository(session)
+
+
+def get_meal_template_service(
+    repo=Depends(get_meal_template_repository),
+    food_repo=Depends(get_food_item_repository),
+    recipe_repo=Depends(get_recipe_repository),
+):
+    """Provide a :class:`MealTemplateService` with its repositories injected."""
+    from app.services.meal_template import MealTemplateService
+
+    return MealTemplateService(repo, food_repo, recipe_repo)
+
+
+# ---------------------------------------------------------------------------
+# DailyNutritionLog
+# ---------------------------------------------------------------------------
+def get_daily_nutrition_log_repository(
+    session: AsyncSession = Depends(get_session),
+):
+    """Provide a :class:`DailyNutritionLogRepository` bound to the request session."""
+    from app.repositories.nutrition_log import DailyNutritionLogRepository
+
+    return DailyNutritionLogRepository(session)
+
+
+def get_daily_nutrition_log_entry_repository(
+    session: AsyncSession = Depends(get_session),
+):
+    """Provide a :class:`DailyNutritionLogEntryRepository` bound to the request session."""
+    from app.repositories.nutrition_log import DailyNutritionLogEntryRepository
+
+    return DailyNutritionLogEntryRepository(session)
+
+
+def get_daily_nutrition_log_item_repository(
+    session: AsyncSession = Depends(get_session),
+):
+    """Provide a :class:`DailyNutritionLogItemRepository` bound to the request session."""
+    from app.repositories.nutrition_log import DailyNutritionLogItemRepository
+
+    return DailyNutritionLogItemRepository(session)
+
+
+def get_daily_nutrition_log_service(
+    repo=Depends(get_daily_nutrition_log_repository),
+    entry_repo=Depends(get_daily_nutrition_log_entry_repository),
+    item_repo=Depends(get_daily_nutrition_log_item_repository),
+    food_repo=Depends(get_food_item_repository),
+):
+    """Provide a :class:`DailyNutritionLogService` with its repositories injected."""
+    from app.services.nutrition_log import DailyNutritionLogService
+
+    return DailyNutritionLogService(repo, entry_repo, item_repo, food_repo)

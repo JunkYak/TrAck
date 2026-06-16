@@ -110,6 +110,15 @@ class User(Base):
     exercise_logs = relationship(
         "ExerciseLog", back_populates="user", cascade="all, delete-orphan", lazy="selectin"
     )
+    recipes = relationship(
+        "Recipe", back_populates="user", cascade="all, delete-orphan", lazy="selectin"
+    )
+    meal_templates = relationship(
+        "MealTemplate", back_populates="user", cascade="all, delete-orphan", lazy="selectin"
+    )
+    daily_nutrition_logs = relationship(
+        "DailyNutritionLog", back_populates="user", cascade="all, delete-orphan", lazy="selectin"
+    )
 
     # ------------------------------------------------------------------ #
     # Dunder helpers
