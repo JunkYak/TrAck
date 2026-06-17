@@ -29,6 +29,9 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
+
 # ---------------------------------------------------------------------------
 # Engine
 # ---------------------------------------------------------------------------
@@ -41,6 +44,13 @@ engine: AsyncEngine = create_async_engine(
     # Pool tuning (SQLite is file-based so a small pool is fine).
     pool_pre_ping=True,
 )
+
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    if "sqlite" in settings.DATABASE_URL:
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 # ---------------------------------------------------------------------------
 # Session factory

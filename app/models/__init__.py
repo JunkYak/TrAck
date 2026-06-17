@@ -9,6 +9,7 @@ from app.models.nutrition_log import DailyNutritionLog, DailyNutritionLogEntry, 
 from app.models.recipe import Recipe, RecipeIngredient  # noqa: F401
 from app.models.user import User  # noqa: F401
 from app.models.weight_log import WeightLog  # noqa: F401
+from app.models.cardio import CardioSession, RunType  # noqa: F401
 
 __all__ = [
     "Exercise", 
@@ -24,5 +25,7 @@ __all__ = [
     "Recipe",
     "RecipeIngredient",
     "User", 
-    "WeightLog"
+    "WeightLog",
+    "CardioSession",
+    "RunType",
 ]

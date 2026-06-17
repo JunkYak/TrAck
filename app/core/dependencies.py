@@ -35,6 +35,7 @@ __all__ = [
     "get_recipe_service",
     "get_meal_template_service",
     "get_daily_nutrition_log_service",
+    "get_cardio_session_service",
 ]
 
 _bearer = HTTPBearer(auto_error=False)
@@ -290,3 +291,25 @@ def get_daily_nutrition_log_service(
     from app.services.nutrition_log import DailyNutritionLogService
 
     return DailyNutritionLogService(repo, entry_repo, item_repo, food_repo)
+
+
+# ---------------------------------------------------------------------------
+# CardioSession
+# ---------------------------------------------------------------------------
+def get_cardio_session_repository(
+    session: AsyncSession = Depends(get_session),
+):
+    """Provide a :class:`CardioSessionRepository` bound to the request session."""
+    from app.repositories.cardio import CardioSessionRepository
+
+    return CardioSessionRepository(session)
+
+
+def get_cardio_session_service(
+    repo=Depends(get_cardio_session_repository),
+    weight_repo=Depends(get_weight_log_repository),
+):
+    """Provide a :class:`CardioSessionService` with its repositories injected."""
+    from app.services.cardio import CardioSessionService
+
+    return CardioSessionService(repo, weight_repo)

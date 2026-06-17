@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.v1 import exercises, foods, health, meal_templates, measurements, nutrition_logs, recipes, weights
+from app.api.v1 import cardio, exercises, foods, health, meal_templates, measurements, nutrition_logs, recipes, weights
 
 api_v1_router = APIRouter(prefix="/api/v1")
 
@@ -23,3 +23,4 @@ api_v1_router.include_router(foods.router)
 api_v1_router.include_router(recipes.router)
 api_v1_router.include_router(meal_templates.router)
 api_v1_router.include_router(nutrition_logs.router)
+api_v1_router.include_router(cardio.router)

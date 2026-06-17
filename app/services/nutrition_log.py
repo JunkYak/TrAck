@@ -100,10 +100,16 @@ class DailyNutritionLogService(BaseService):
         return await self._item_repo.update(item, update_data)
 
     async def delete_item(self, item_id: str, user_id: str) -> None:
-        """Remove a specific ingredient from an entry."""
+        """Remove a specific ingredient from an entry and clean up empty entries."""
         item = await self._item_repo.get_by_id_with_parents(item_id)
         if not item:
             raise NotFoundError("Item not found.")
         if item.entry.log.user_id != user_id:
             raise AuthorizationError("You do not have permission to delete this item.")
+            
+        entry = item.entry
         await self._item_repo.delete(item)
+        
+        remaining_items = await self._item_repo.filter_by(entry_id=entry.id)
+        if not remaining_items:
+            await self._entry_repo.delete(entry)
