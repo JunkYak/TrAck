@@ -6,6 +6,9 @@ echo "Starting trAck deployment sequence..."
 echo "Running Alembic migrations..."
 python -m alembic upgrade head
 
+echo "Seeding global food catalog..."
+python scripts/seed_global_foods.py
+
 echo "Booting FastAPI Application..."
 # Azure App Service sets the PORT environment variable natively.
 # We default to 8000 if not provided.

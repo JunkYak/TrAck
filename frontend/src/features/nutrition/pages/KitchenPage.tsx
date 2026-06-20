@@ -7,7 +7,7 @@ import { ErrorState } from '../components/Shared/ErrorState';
 import { EmptyNutritionState } from '../components/Kitchen/EmptyNutritionState';
 import { NutritionSummaryCard } from '../components/Kitchen/NutritionSummaryCard';
 import { LoggedEntryGroup } from '../components/Kitchen/LoggedEntryGroup';
-import { PreviousLogRow } from '../components/Kitchen/PreviousLogRow';
+
 import { AddLogInlinePanel } from '../components/Kitchen/AddLogInlinePanel';
 
 // Helper to get local date in YYYY-MM-DD
@@ -56,12 +56,12 @@ export const KitchenPage = () => {
       {/* SECTION 3: Add To Today's Log */}
       <AddLogInlinePanel date={todayDate} />
 
-      {/* SECTION 4: Previous Logs (Placeholder UI) */}
+      {/* SECTION 4: Previous Logs */}
       <div className="mt-8">
         <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 px-2">Previous Logs</h3>
-        <PreviousLogRow dayName="Yesterday" calories={2600} protein={120} />
-        <PreviousLogRow dayName="Monday" calories={2800} protein={130} />
-        <PreviousLogRow dayName="Sunday" calories={2500} protein={115} />
+        <div className="p-6 text-center text-gray-500 text-sm bg-[#161616] border border-[#2A2A2A] rounded-2xl">
+          Coming soon.
+        </div>
       </div>
     </div>
   );
