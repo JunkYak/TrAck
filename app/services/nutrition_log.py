@@ -40,6 +40,9 @@ class DailyNutritionLogService(BaseService):
         self._item_repo = item_repo
         self._food_repo = food_repo
 
+    async def get_recent_history(self, user_id: str, limit: int = 7) -> list[dict]:
+        """Fetch server-aggregated macros for recent logs."""
+        return await self._repo.get_recent_history(user_id, limit)
 
 
     async def get_or_create_daily_log(self, user_id: str, log_date: date) -> DailyNutritionLog:

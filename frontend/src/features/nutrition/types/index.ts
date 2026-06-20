@@ -139,3 +139,9 @@ export interface DailyNutritionLogRead {
   created_at: string;
   updated_at: string | null;
 }
+
+export interface DailyNutritionLogSummaryRead {
+  date: string;
+  total_calories: number;
+  total_protein: number;
+}

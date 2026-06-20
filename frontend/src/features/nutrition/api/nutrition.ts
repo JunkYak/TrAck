@@ -12,7 +12,8 @@ import {
   RecipeCreate,
   RecipeUpdate,
   MealTemplateCreate,
-  MealTemplateUpdate
+  MealTemplateUpdate,
+  DailyNutritionLogSummaryRead
 } from '../types';
 
 // Query Keys Strategy for Cache Management
@@ -23,6 +24,7 @@ export const nutritionKeys = {
   templates: () => [...nutritionKeys.all, 'templates'] as const,
   logs: () => [...nutritionKeys.all, 'logs'] as const,
   logByDate: (date: string) => [...nutritionKeys.logs(), date] as const,
+  history: () => [...nutritionKeys.logs(), 'history'] as const,
 };
 
 // --- API FETCHERS ---
@@ -95,6 +97,11 @@ export const deleteTemplate = async (templateId: string) => {
 
 export const getDailyLog = async (date: string): Promise<DailyNutritionLogRead> => {
   const { data } = await apiClient.get(`/api/v1/nutrition-logs/${date}`);
+  return data;
+};
+
+export const getNutritionHistory = async (limit: number = 7): Promise<DailyNutritionLogSummaryRead[]> => {
+  const { data } = await apiClient.get(`/api/v1/nutrition-logs/history?limit=${limit}`);
   return data;
 };
 
@@ -239,6 +246,13 @@ export const useDailyLog = (date: string) => {
   return useQuery({
     queryKey: nutritionKeys.logByDate(date),
     queryFn: () => getDailyLog(date),
+  });
+};
+
+export const useNutritionHistory = (limit: number = 7) => {
+  return useQuery({
+    queryKey: [...nutritionKeys.history(), limit],
+    queryFn: () => getNutritionHistory(limit),
   });
 };
 

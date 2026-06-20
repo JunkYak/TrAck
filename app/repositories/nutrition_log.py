@@ -44,6 +44,31 @@ class DailyNutritionLogRepository(BaseRepository[DailyNutritionLog, str]):
         result = await self._session.execute(stmt)
         return result.scalars().first()
 
+    async def get_recent_history(self, user_id: str, limit: int = 7) -> list[dict]:
+        from sqlalchemy import func, desc
+        stmt = (
+            select(
+                DailyNutritionLog.date,
+                func.coalesce(func.sum(DailyNutritionLogItem.calories), 0).label("total_calories"),
+                func.coalesce(func.sum(DailyNutritionLogItem.protein), 0).label("total_protein"),
+            )
+            .outerjoin(DailyNutritionLogEntry, DailyNutritionLog.id == DailyNutritionLogEntry.log_id)
+            .outerjoin(DailyNutritionLogItem, DailyNutritionLogEntry.id == DailyNutritionLogItem.entry_id)
+            .where(DailyNutritionLog.user_id == user_id)
+            .group_by(DailyNutritionLog.date)
+            .order_by(desc(DailyNutritionLog.date))
+            .limit(limit)
+        )
+        result = await self._session.execute(stmt)
+        return [
+            {
+                "date": row.date,
+                "total_calories": round(row.total_calories, 1),
+                "total_protein": round(row.total_protein, 1),
+            }
+            for row in result.all()
+        ]
+
 
 class DailyNutritionLogEntryRepository(BaseRepository[DailyNutritionLogEntry, str]):
     model = DailyNutritionLogEntry

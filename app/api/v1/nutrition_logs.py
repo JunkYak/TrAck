@@ -23,8 +23,30 @@ from app.schemas.nutrition_log import (
 )
 from app.services.nutrition_log import DailyNutritionLogService
 
+from typing import List
+from app.schemas.nutrition_log import DailyNutritionLogSummaryRead
+
 router = APIRouter(prefix="/nutrition-logs", tags=["nutrition-logs"])
 
+
+# ---------------------------------------------------------------------------
+# GET /api/v1/nutrition-logs/history
+# ---------------------------------------------------------------------------
+@router.get(
+    "/history",
+    response_model=List[DailyNutritionLogSummaryRead],
+    status_code=status.HTTP_200_OK,
+    summary="Get recent nutrition history",
+    description="Returns a lightweight list of recent nutrition logs with aggregated macros.",
+)
+async def get_recent_history(
+    limit: int = Query(7, ge=1, le=30, description="Number of logs to retrieve"),
+    user_id: str = Depends(get_current_user_id),
+    service: DailyNutritionLogService = Depends(get_daily_nutrition_log_service),
+) -> List[DailyNutritionLogSummaryRead]:
+    # We validate the raw dicts directly to the Pydantic schema
+    logs = await service.get_recent_history(user_id, limit)
+    return [DailyNutritionLogSummaryRead.model_validate(log) for log in logs]
 
 # ---------------------------------------------------------------------------
 # POST /api/v1/nutrition-logs/entries

@@ -70,3 +70,9 @@ class DailyNutritionLogRead(AppBaseModel):
     entries: List[DailyNutritionLogEntryRead]
     created_at: datetime
     updated_at: Optional[datetime] = None
+
+
+class DailyNutritionLogSummaryRead(AppBaseModel):
+    date: date
+    total_calories: float
+    total_protein: float
