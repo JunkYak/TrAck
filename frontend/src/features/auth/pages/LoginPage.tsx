@@ -10,7 +10,7 @@ export const LoginPage = () => {
     <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md text-center space-y-8">
         <div>
-          <h1 className="text-5xl font-black tracking-tighter text-amber-500 uppercase">
+          <h1 className="text-5xl font-black tracking-tighter text-amber-500">
             trAck
           </h1>
           <p className="mt-4 text-gray-400 font-bold">
