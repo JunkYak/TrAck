@@ -44,7 +44,13 @@ from app.database.base import Base  # noqa: E402
 from app.models.user import User
 from app.models.weight_log import WeightLog
 from app.models.measurement_session import MeasurementSession
-
+from app.models.cardio import CardioSession
+from app.models.exercise import Exercise
+from app.models.exercise_log import ExerciseLog
+from app.models.food_item import FoodItem
+from app.models.meal_template import MealTemplate
+from app.models.nutrition_log import DailyNutritionLog
+from app.models.recipe import Recipe
 target_metadata = Base.metadata
 
 # ── Pull database URL from app settings ─────────────────────────────────────
