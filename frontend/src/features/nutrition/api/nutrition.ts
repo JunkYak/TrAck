@@ -28,7 +28,11 @@ export const nutritionKeys = {
 // --- API FETCHERS ---
 
 export const getFoods = async (q: string): Promise<FoodItemRead[]> => {
-  const { data } = await apiClient.get(`/api/v1/foods/search?q=${q}`);
+  if (q) {
+    const { data } = await apiClient.get(`/api/v1/foods/search?q=${q}`);
+    return data;
+  }
+  const { data } = await apiClient.get('/api/v1/foods?limit=500');
   return data;
 };
 
@@ -39,6 +43,11 @@ export const createFood = async (data: FoodItemCreate): Promise<FoodItemRead> =>
 
 export const updateFood = async ({ foodId, update }: { foodId: string, update: FoodItemUpdate }): Promise<FoodItemRead> => {
   const response = await apiClient.put(`/api/v1/foods/${foodId}`, update);
+  return response.data;
+};
+
+export const cloneOverrideFood = async ({ foodId, data }: { foodId: string, data: FoodItemCreate }): Promise<FoodItemRead> => {
+  const response = await apiClient.post(`/api/v1/foods/${foodId}/override`, data);
   return response.data;
 };
 
@@ -109,7 +118,6 @@ export const useFoods = (q: string = '') => {
   return useQuery({
     queryKey: [...nutritionKeys.foods(), q],
     queryFn: () => getFoods(q),
-    enabled: q ? q.length > 0 : false,
   });
 };
 
@@ -127,6 +135,16 @@ export const useUpdateFood = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateFood,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: nutritionKeys.foods() });
+    },
+  });
+};
+
+export const useCloneFood = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: cloneOverrideFood,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: nutritionKeys.foods() });
     },

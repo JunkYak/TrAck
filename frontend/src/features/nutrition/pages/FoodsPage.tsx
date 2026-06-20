@@ -18,11 +18,9 @@ export const FoodsPage = () => {
   const [deleteErrorMsg, setDeleteErrorMsg] = useState('');
 
   const handleEdit = (food: FoodItemRead) => {
-    // Only allow editing if user_id is present (not a global food)
-    if (food.user_id) {
-      setFoodToEdit(food);
-      setIsDialogOpen(true);
-    }
+    // Open for both global and user foods so cloning can happen
+    setFoodToEdit(food);
+    setIsDialogOpen(true);
   };
 
   const handleCreate = () => {
@@ -71,11 +69,7 @@ export const FoodsPage = () => {
         </div>
       )}
 
-      {!debouncedSearch ? (
-        <div className="text-center py-20 text-gray-500">
-          <p className="text-lg font-bold">Search for a food above to get started.</p>
-        </div>
-      ) : isLoading ? (
+      {isLoading ? (
         <LoadingState />
       ) : isError ? (
         <div className="text-center py-20 text-red-500 font-bold">Failed to load foods.</div>
@@ -92,16 +86,14 @@ export const FoodsPage = () => {
             <div 
               key={food.id}
               onClick={() => handleEdit(food)}
-              className={`flex items-center justify-between p-4 border-b border-[#1A1A1A] hover:bg-[#1A1A1A]/50 transition-colors group ${food.user_id ? 'cursor-pointer' : 'cursor-default'}`}
+              className="flex items-center justify-between p-4 border-b border-[#1A1A1A] hover:bg-[#1A1A1A]/50 transition-colors group cursor-pointer"
             >
               <div className="flex flex-col">
                 <div className="flex items-center space-x-3 mb-1">
-                  <span className={`text-lg font-bold ${food.user_id ? 'text-white group-hover:text-amber-500 transition-colors' : 'text-gray-300'}`}>
+                  <span className={`text-lg font-bold ${food.user_id ? 'text-amber-500 transition-colors' : 'text-gray-100'}`}>
                     {food.name}
                   </span>
-                  {!food.user_id ? (
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded border text-blue-400 bg-blue-400/10 border-blue-400/20">Global</span>
-                  ) : (
+                  {food.user_id && (
                     <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded border text-purple-400 bg-purple-400/10 border-purple-400/20">Custom</span>
                   )}
                 </div>

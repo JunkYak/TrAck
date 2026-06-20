@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import secrets
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, HTTPException, Query, status, Depends
 from fastapi.responses import RedirectResponse
 
 from app.auth.oauth import (
@@ -21,7 +21,9 @@ from app.auth.oauth import (
     get_google_user_info,
 )
 from app.core.config import get_settings
-from app.schemas.common import MessageResponse
+from app.core.dependencies import get_auth_service
+from app.core.security import create_access_token
+from app.services.auth import AuthService
 
 settings = get_settings()
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -47,22 +49,22 @@ async def google_login() -> RedirectResponse:
 @router.get(
     "/google/callback",
     summary="Google OAuth callback",
-    response_model=MessageResponse,
 )
 async def google_callback(
     code: str = Query(..., description="Authorisation code from Google"),
     state: str | None = Query(None, description="State token for CSRF verification"),
     error: str | None = Query(None, description="Error returned by Google"),
-) -> MessageResponse:
+    service: AuthService = Depends(get_auth_service),
+) -> RedirectResponse:
     """Handle the redirect from Google after user consent.
 
-    Steps (TODO – implement once User model is available):
-    1. Verify *state* against the value stored during ``/google/login``.
+    Steps:
+    1. Verify *state* against the value stored during ``/google/login``. (Skipped for phase 1)
     2. Exchange *code* for access + id tokens.
     3. Fetch the user's profile from Google.
     4. Find or create the user in the database.
-    5. Issue application-level access + refresh tokens.
-    6. Return (or redirect with) the tokens.
+    5. Issue application-level access token.
+    6. Redirect to frontend with token.
     """
     if error:
         raise HTTPException(
@@ -88,13 +90,13 @@ async def google_callback(
             detail="Failed to retrieve user profile from Google.",
         ) from exc
 
-    # --- Steps 4-6: TODO --------------------------------------------------
-    # user = await auth_service.find_or_create_google_user(user_info)
-    # access_token  = create_access_token(subject=user.id)
-    # refresh_token = create_refresh_token(subject=user.id)
-    # return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+    # --- Step 4: Find or Create User ---------------------------------------
+    user = await service.find_or_create_google_user(user_info)
 
-    return MessageResponse(
-        message="Google OAuth scaffold – user persistence not yet implemented.",
-        detail={"google_sub": user_info.get("sub"), "email": user_info.get("email")},
-    )
+    # --- Step 5: Issue Token ----------------------------------------------
+    access_token = create_access_token(subject=user.id)
+
+    # --- Step 6: Redirect -------------------------------------------------
+    frontend_url = settings.FRONTEND_URL.rstrip("/")
+    redirect_url = f"{frontend_url}/auth/callback?token={access_token}"
+    return RedirectResponse(url=redirect_url)

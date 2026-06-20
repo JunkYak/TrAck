@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { FoodItemRead } from '../../types';
-import { useCreateFood, useUpdateFood } from '../../api/nutrition';
+import { useCreateFood, useUpdateFood, useCloneFood } from '../../api/nutrition';
 
 const foodSchema = z.object({
   name: z.string().min(1, 'Name is required').max(255),
@@ -24,6 +24,7 @@ interface FoodFormDialogProps {
 export const FoodFormDialog = ({ isOpen, onOpenChange, foodToEdit }: FoodFormDialogProps) => {
   const createMutation = useCreateFood();
   const updateMutation = useUpdateFood();
+  const cloneMutation = useCloneFood();
   
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FoodFormValues>({
     resolver: zodResolver(foodSchema),
@@ -55,9 +56,17 @@ export const FoodFormDialog = ({ isOpen, onOpenChange, foodToEdit }: FoodFormDia
 
   const onSubmit = (data: FoodFormValues) => {
     if (foodToEdit) {
-      updateMutation.mutate({ foodId: foodToEdit.id, update: data }, {
-        onSuccess: () => onOpenChange(false)
-      });
+      if (!foodToEdit.user_id) {
+        // Global food -> Clone
+        cloneMutation.mutate({ foodId: foodToEdit.id, data }, {
+          onSuccess: () => onOpenChange(false)
+        });
+      } else {
+        // User food -> Update
+        updateMutation.mutate({ foodId: foodToEdit.id, update: data }, {
+          onSuccess: () => onOpenChange(false)
+        });
+      }
     } else {
       createMutation.mutate(data, {
         onSuccess: () => onOpenChange(false)
@@ -65,7 +74,7 @@ export const FoodFormDialog = ({ isOpen, onOpenChange, foodToEdit }: FoodFormDia
     }
   };
 
-  const isPending = createMutation.isPending || updateMutation.isPending;
+  const isPending = createMutation.isPending || updateMutation.isPending || cloneMutation.isPending;
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
@@ -73,7 +82,7 @@ export const FoodFormDialog = ({ isOpen, onOpenChange, foodToEdit }: FoodFormDia
         <Dialog.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40" />
         <Dialog.Content className="fixed bottom-0 left-0 right-0 md:top-[50%] md:left-[50%] md:translate-x-[-50%] md:translate-y-[-50%] md:bottom-auto w-full md:max-w-md bg-[#121212] border-t md:border border-[#2A2A2A] p-6 rounded-t-2xl md:rounded-xl shadow-2xl z-50">
           <Dialog.Title className="text-xl font-bold text-white mb-4">
-            {foodToEdit ? 'Edit Custom Food' : 'Create Custom Food'}
+            {foodToEdit ? (foodToEdit.user_id ? 'Edit Custom Food' : 'Clone Global Food') : 'Create Custom Food'}
           </Dialog.Title>
           
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -123,7 +132,7 @@ export const FoodFormDialog = ({ isOpen, onOpenChange, foodToEdit }: FoodFormDia
               </div>
             </div>
 
-            {(createMutation.isError || updateMutation.isError) && (
+            {(createMutation.isError || updateMutation.isError || cloneMutation.isError) && (
               <p className="text-red-500 text-sm mt-2">An error occurred while saving.</p>
             )}
 

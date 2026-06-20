@@ -100,3 +100,37 @@ class FoodItemRepository(BaseRepository[FoodItem, str]):
         final_list = list(deduped.values())
         final_list.sort(key=lambda x: x.name)
         return final_list[:limit]
+
+    async def list_all(
+        self, user_id: Optional[str] = None, limit: int = 100, offset: int = 0
+    ) -> Sequence[FoodItem]:
+        """List foods, correctly shadowing global items with user overrides."""
+        conditions = [FoodItem.user_id.is_(None)]
+        if user_id:
+            conditions.append(FoodItem.user_id == user_id)
+            
+        stmt = select(FoodItem).where(or_(*conditions))
+        
+        result = await self._session.execute(stmt)
+        items = result.scalars().all()
+        
+        # Deduplication / Shadowing logic
+        # Key: (name, unit)
+        deduped: dict[tuple[str, str], FoodItem] = {}
+        
+        for item in items:
+            key = (item.name.lower(), item.unit.lower())
+            existing = deduped.get(key)
+            
+            if not existing:
+                deduped[key] = item
+            elif existing.user_id is None and item.user_id == user_id:
+                # Override the global one with the user's specific one
+                deduped[key] = item
+                
+        # Sort, apply offset and limit
+        final_list = list(deduped.values())
+        final_list.sort(key=lambda x: x.name)
+        
+        return final_list[offset:offset + limit]
+

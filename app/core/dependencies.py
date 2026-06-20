@@ -35,7 +35,8 @@ __all__ = [
     "get_recipe_service",
     "get_meal_template_service",
     "get_daily_nutrition_log_service",
-    "get_cardio_session_service",
+    "get_auth_service",
+    "get_user_repository",
 ]
 
 _bearer = HTTPBearer(auto_error=False)
@@ -71,33 +72,31 @@ async def get_current_token_payload(
     return payload
 
 
-# TODO: Replace this stub with the real JWT-based implementation below
-# once Google OAuth is fully implemented.
-#
-# async def get_current_user_id(
-#     payload: dict = Depends(get_current_token_payload),
-# ) -> str:
-#     user_id: str | None = payload.get("sub")
-#     if user_id is None:
-#         raise HTTPException(
-#             status_code=status.HTTP_401_UNAUTHORIZED,
-#             detail="Token payload missing 'sub' claim",
-#             headers={"WWW-Authenticate": "Bearer"},
-#         )
-#     return user_id
-
-# ── DEV-ONLY STUB ────────────────────────────────────────────────────────
-_DEV_TEST_USER_ID = "00000000-0000-0000-0000-000000000001"
+async def get_current_user_id(
+    payload: dict = Depends(get_current_token_payload),
+) -> str:
+    user_id: str | None = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token payload missing 'sub' claim",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user_id
 
 
-async def get_current_user_id() -> str:
-    """Return a fixed test user ID for development.
+# ---------------------------------------------------------------------------
+# Auth
+# ---------------------------------------------------------------------------
+def get_user_repository(session: AsyncSession = Depends(get_session)):
+    """Provide a :class:`UserRepository` bound to the request session."""
+    from app.repositories.user import UserRepository
+    return UserRepository(session)
 
-    .. warning::
-        This bypasses all authentication.  **Must** be replaced with the
-        JWT-based version above before deploying to production.
-    """
-    return _DEV_TEST_USER_ID
+def get_auth_service(repo=Depends(get_user_repository)):
+    """Provide an :class:`AuthService` with its repository injected."""
+    from app.services.auth import AuthService
+    return AuthService(repo)
 
 
 # ---------------------------------------------------------------------------

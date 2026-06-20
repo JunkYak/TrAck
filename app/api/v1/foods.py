@@ -43,6 +43,46 @@ async def create_food(
 
 
 # ---------------------------------------------------------------------------
+# GET /api/v1/foods
+# ---------------------------------------------------------------------------
+@router.get(
+    "",
+    response_model=List[FoodItemRead],
+    status_code=status.HTTP_200_OK,
+    summary="List all foods",
+    description="List all global foods shadowed by personal overrides.",
+)
+async def list_foods(
+    limit: int = Query(100, ge=1, le=500, description="Max results to return."),
+    offset: int = Query(0, ge=0, description="Offset for pagination."),
+    user_id: str = Depends(get_current_user_id),
+    service: FoodItemService = Depends(get_food_item_service),
+) -> List[FoodItemRead]:
+    entries = await service.list_foods(user_id, limit=limit, offset=offset)
+    return [FoodItemRead.model_validate(e) for e in entries]
+
+
+# ---------------------------------------------------------------------------
+# POST /api/v1/foods/{food_id}/override
+# ---------------------------------------------------------------------------
+@router.post(
+    "/{food_id}/override",
+    response_model=FoodItemRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Clone system food into personal override",
+    description="Creates a personal copy of a global system food.",
+)
+async def clone_override(
+    food_id: str,
+    data: FoodItemCreate,
+    user_id: str = Depends(get_current_user_id),
+    service: FoodItemService = Depends(get_food_item_service),
+) -> FoodItemRead:
+    entry = await service.clone_override(food_id, user_id, data)
+    return FoodItemRead.model_validate(entry)
+
+
+# ---------------------------------------------------------------------------
 # GET /api/v1/foods/search
 # ---------------------------------------------------------------------------
 @router.get(

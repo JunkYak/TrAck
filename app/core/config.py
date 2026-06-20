@@ -53,8 +53,13 @@ class Settings(BaseSettings):
     # JWT
     # ------------------------------------------------------------------ #
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200 # 30 Days
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # ------------------------------------------------------------------ #
+    # Application / Frontend
+    # ------------------------------------------------------------------ #
+    FRONTEND_URL: str = "http://localhost:5173"
 
     # ------------------------------------------------------------------ #
     # Google OAuth (scaffold – values filled via .env)
@@ -62,7 +67,6 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = "http://localhost:8000/auth/google/callback"
-
     # ------------------------------------------------------------------ #
     # CORS
     # ------------------------------------------------------------------ #

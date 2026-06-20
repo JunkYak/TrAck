@@ -19,6 +19,10 @@ class FoodItemService(BaseService):
 
     
 
+    async def list_foods(self, user_id: str, limit: int = 100, offset: int = 0) -> Sequence[FoodItem]:
+        """List all foods, shadowing globals with user overrides."""
+        return await self._repo.list_all(user_id=user_id, limit=limit, offset=offset)
+
     async def get_by_id(self, food_id: str) -> FoodItem:
         """Return a food item by primary key or raise :class:`NotFoundError`."""
         item = await self._repo.get_by_id(food_id)
@@ -62,6 +66,24 @@ class FoodItemService(BaseService):
         )
         return await self._repo.create(new_food)
 
+    async def clone_override(self, food_id: str, user_id: str, data: FoodItemCreate) -> FoodItem:
+        """Clone a global food into a user-owned override."""
+        original = await self.get_by_id(food_id)
+        if original.user_id is not None:
+            raise AuthorizationError("Can only clone system foods.")
+            
+        existing = await self._repo.get_by_name_and_unit(data.name, data.unit, user_id=user_id)
+        if existing and existing.user_id == user_id:
+            # Overwrite the existing override
+            return await self._repo.update(existing, data.model_dump(exclude_unset=True))
+            
+        new_food = FoodItem(
+            **data.model_dump(),
+            user_id=user_id,
+            source="MANUAL"
+        )
+        return await self._repo.create(new_food)
+
     async def update_override(self, item_id: str, user_id: str, data: FoodItemUpdate) -> FoodItem:
         """Update a personal override. Enforces ownership."""
         item = await self.get_by_id(item_id)
@@ -81,3 +103,4 @@ class FoodItemService(BaseService):
             raise AuthorizationError("You do not have permission to delete this food item.")
             
         await self._repo.delete(item)
+
